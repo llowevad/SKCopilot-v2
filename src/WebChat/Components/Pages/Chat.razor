@@ -1,0 +1,122 @@
+@page "/"
+@rendermode InteractiveServer
+@using SKCopilotV2.WebChat.Services
+@inject OrchestratorClient Orchestrator
+
+<PageTitle>Blog Post Generator</PageTitle>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h3>✍️ Blog Post Generator</h3>
+        <p class="text-muted mb-0">Enter a topic and the AI orchestrator will generate a blog post.</p>
+    </div>
+
+    <div class="chat-history" @ref="_chatPanel">
+        @if (_messages.Count == 0)
+        {
+            <div class="empty-state">
+                <p>No messages yet. Type a blog topic below to get started!</p>
+            </div>
+        }
+
+        @foreach (var msg in _messages)
+        {
+            <div class="message @msg.Role">
+                <div class="message-label">@(msg.Role == "user" ? "You" : "Blog Orchestrator")</div>
+                <div class="message-content">
+                    @if (msg.Role == "agent")
+                    {
+                        @((MarkupString)FormatBlogContent(msg.Text))
+                    }
+                    else
+                    {
+                        @msg.Text
+                    }
+                </div>
+            </div>
+        }
+
+        @if (_loading)
+        {
+            <div class="message agent">
+                <div class="message-label">Blog Orchestrator</div>
+                <div class="message-content loading-indicator">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Generating blog post — this may take a moment…
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="chat-input-area">
+        <form @onsubmit="SendAsync" class="d-flex gap-2">
+            <input @bind="_input"
+                   @bind:event="oninput"
+                   class="form-control"
+                   placeholder="Enter a blog topic…"
+                   disabled="@_loading"
+                   autofocus />
+            <button type="submit" class="btn btn-primary" disabled="@(_loading || string.IsNullOrWhiteSpace(_input))">
+                Send
+            </button>
+        </form>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger mt-2 mb-0" role="alert">
+                @_error
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<ChatMessage> _messages = new();
+    private string _input = "";
+    private bool _loading;
+    private string? _error;
+    private ElementReference _chatPanel;
+
+    private async Task SendAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_input) || _loading) return;
+
+        _error = null;
+        var topic = _input.Trim();
+        _input = "";
+        _messages.Add(new("user", topic));
+        _loading = true;
+
+        try
+        {
+            var response = await Orchestrator.GenerateBlogAsync(topic);
+            _messages.Add(new("agent", response));
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = $"Could not reach the orchestrator. Is it running? ({ex.Message})";
+        }
+        catch (TaskCanceledException)
+        {
+            _error = "Request timed out. The orchestrator may be overloaded.";
+        }
+        catch (Exception ex)
+        {
+            _error = $"Unexpected error: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string FormatBlogContent(string text)
+    {
+        // Simple formatting: preserve line breaks for display
+        return System.Net.WebUtility.HtmlEncode(text)
+            .Replace("\n\n", "</p><p>")
+            .Replace("\n", "<br />");
+    }
+
+    private record ChatMessage(string Role, string Text);
+}

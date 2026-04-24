@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.21/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.21",
+  "version": "1.4.0",
+  "id": "${{BOT_ID}}",
+  "developer": {
+    "name": "Dave Wollerman",
+    "websiteUrl": "https://skcopilot-v2.azurewebsites.net",
+    "privacyUrl": "https://skcopilot-v2.azurewebsites.net/privacy",
+    "termsOfUseUrl": "https://skcopilot-v2.azurewebsites.net/terms"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "SK Copilot v2 - Blog Creator",
+    "full": "SK Copilot v2 - Blog Creator Agent"
+  },
+  "description": {
+    "short": "Blog creation agent for Microsoft 365 Copilot",
+    "full": "SK Copilot v2 - Blog Creator is a multi-agent blog writing assistant built for Microsoft 365 Copilot. Ask it to write blog posts directly from your Copilot chat — it orchestrates specialized AI agents (BlogWriter for drafting, Reviewer for editorial feedback) to deliver polished content. Also available in Teams as a secondary experience."
+  },
+  "accentColor": "#5B5FC7",
+  "bots": [
+    {
+      "botId": "${{BOT_ID}}",
+      "scopes": [
+        "copilot",
+        "personal",
+        "team",
+        "groupChat"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": [
+            "copilot",
+            "personal",
+            "team",
+            "groupChat"
+          ],
+          "commands": [
+            {
+              "title": "write",
+              "description": "Write a blog post on a topic"
+            },
+            {
+              "title": "help",
+              "description": "Show available commands and usage"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "token.botframework.com",
+    "${{BOT_DOMAIN}}"
+  ],
+  "copilotAgents": {
+    "customEngineAgents": [
+      {
+        "type": "bot",
+        "id": "${{BOT_ID}}"
+      }
+    ]
+  },
+  "webApplicationInfo": {
+    "id": "${{BOT_ID}}",
+    "resource": "api://botid-${{BOT_ID}}"
+  },
+  "defaultInstallScope": "personal",
+  "defaultGroupCapability": {
+    "team": "bot"
+  }
+}

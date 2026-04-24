@@ -1,0 +1,88 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#1a1a2e', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#5B5FC7', 'secondaryColor': '#F0F4FF', 'secondaryTextColor': '#1a1a2e', 'tertiaryColor': '#E8F5E9', 'tertiaryTextColor': '#1a1a2e', 'fontSize': '14px', 'edgeLabelBackground': '#ffffff'}}}%%
+
+graph TB
+    subgraph USERS["👤 User Surfaces"]
+        direction LR
+        BROWSER["🌐 Browser"]
+        TEAMS["💬 Microsoft Teams"]
+        COPILOT["🤖 M365 Copilot"]
+    end
+
+    subgraph LAYER2["Layer 2 — Web Chat · Blazor Interactive Server · Port 5200"]
+        BLAZOR["Chat.razor<br/>Blazor UI Component"]
+        ORCHCLIENT["OrchestratorClient<br/>A2A HTTP + SSE Client"]
+    end
+
+    subgraph AZURE_BOT["☁️ Azure Bot Service"]
+        BOTFW["Bot Framework Service<br/>JWT Token Signing · Channel Routing"]
+    end
+
+    subgraph LAYER3["Layer 3 — CopilotAgent · M365 Agents SDK · Port 5300"]
+        JWTAUTH["JWT Auth Middleware<br/>AspNetExtensions.cs"]
+        BLOGAGENT["BlogCopilotAgent<br/>AgentApplication — Thin Proxy"]
+        A2ACLIENT["OrchestratorA2AClient<br/>A2A HTTP + SSE Client"]
+    end
+
+    subgraph LAYER1["Layer 1 — Orchestrator ★ Core Product · Agent Framework · Port 5100"]
+        A2ASERVER["A2A Server<br/>MapA2A · JSON-RPC 2.0"]
+        subgraph WORKFLOW["BlogWorkflow — Sequential Pipeline"]
+            WRITER["📝 BlogWriter Agent<br/>ChatClientAgent"]
+            REVIEWER["✏️ Reviewer Agent<br/>ChatClientAgent"]
+        end
+    end
+
+    subgraph AZURE_AI["☁️ Azure AI Foundry"]
+        GPT4O["GPT-4o<br/>Responses API"]
+    end
+
+    subgraph ENTRA["🔐 Microsoft Entra ID"]
+        APPID["App Registration<br/>Bot ID + Client Secret"]
+    end
+
+    BROWSER -->|"HTTP"| BLAZOR
+    BLAZOR --> ORCHCLIENT
+
+    TEAMS -->|"Activity"| BOTFW
+    COPILOT -->|"Activity"| BOTFW
+    BOTFW -->|"POST /api/messages + Bearer JWT"| JWTAUTH
+
+    JWTAUTH -->|"Validated"| BLOGAGENT
+    BLOGAGENT -->|"Typing indicators every 8s"| BOTFW
+    BLOGAGENT --> A2ACLIENT
+
+    ORCHCLIENT -->|"POST A2A JSON-RPC 2.0 SSE Stream"| A2ASERVER
+    A2ACLIENT -->|"POST A2A JSON-RPC 2.0 SSE Stream"| A2ASERVER
+
+    A2ASERVER --> WRITER
+    WRITER -->|"Draft"| REVIEWER
+
+    WRITER -->|"Prompt"| GPT4O
+    REVIEWER -->|"Prompt"| GPT4O
+
+    JWTAUTH -.->|"Token Validation"| ENTRA
+    BOTFW -.->|"OAuth 2.0"| ENTRA
+
+    classDef layer1 fill:#BBDEFB,stroke:#0d47a1,color:#0d47a1,stroke-width:2px
+    classDef layer2 fill:#C8E6C9,stroke:#1b5e20,color:#1b5e20,stroke-width:2px
+    classDef layer3 fill:#E1BEE7,stroke:#4a148c,color:#4a148c,stroke-width:2px
+    classDef azure fill:#B3D4FC,stroke:#004578,color:#004578,stroke-width:2px
+    classDef user fill:#FFF3CD,stroke:#e65100,color:#5D4200,stroke-width:2px
+    classDef agent fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef auth fill:#fce4ec,stroke:#c62828,color:#b71c1c,stroke-width:2px
+
+    class BROWSER,TEAMS,COPILOT user
+    class BLAZOR,ORCHCLIENT layer2
+    class JWTAUTH auth
+    class BLOGAGENT,A2ACLIENT layer3
+    class A2ASERVER layer1
+    class WRITER,REVIEWER agent
+    class GPT4O,BOTFW,APPID azure
+
+    style USERS fill:#FFF8E1,stroke:#e65100,color:#5D4200,stroke-width:2px
+    style LAYER2 fill:#F1F8E9,stroke:#1b5e20,color:#1b5e20,stroke-width:2px
+    style AZURE_BOT fill:#E3F2FD,stroke:#004578,color:#004578,stroke-width:2px
+    style LAYER3 fill:#F3E5F5,stroke:#4a148c,color:#4a148c,stroke-width:2px
+    style LAYER1 fill:#E8EAF6,stroke:#0d47a1,color:#0d47a1,stroke-width:2px
+    style WORKFLOW fill:#E8F5E9,stroke:#2e7d32,color:#1b5e20,stroke-width:1px
+    style AZURE_AI fill:#E3F2FD,stroke:#004578,color:#004578,stroke-width:2px
+    style ENTRA fill:#FCE4EC,stroke:#c62828,color:#b71c1c,stroke-width:2px

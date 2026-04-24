@@ -1,0 +1,11 @@
+# Generated icons
+color.png
+outline.png
+
+# Built app package
+SKCopilotV2.zip
+
+# Secrets (never commit)
+env/.env.prod
+env/.env.local
+*.secret

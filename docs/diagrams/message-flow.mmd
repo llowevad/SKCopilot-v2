@@ -1,0 +1,51 @@
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '13px', 'actorFontSize': '13px', 'noteFontSize': '12px'}, 'sequence': {'mirrorActors': false, 'messageAlign': 'center', 'width': 200}}}%%
+
+sequenceDiagram
+    actor User as 👤 User
+    participant Surface as 💬 Teams / 🤖 Copilot
+    participant BFS as ☁️ Bot Framework<br/>Service
+    participant CEA as Layer 3: CopilotAgent<br/>(M365 SDK Proxy)
+    participant A2A as Layer 1: Orchestrator<br/>(A2A Server)
+    participant BW as 📝 BlogWriter<br/>Agent
+    participant RV as ✏️ Reviewer<br/>Agent
+    participant LLM as ☁️ GPT-4o<br/>(AI Foundry)
+
+    Note over User,LLM: STEP 1 — User sends message through M365 surface
+    User->>Surface: "Write a blog about AI"
+    
+    Note over Surface,BFS: STEP 2 — Teams/Copilot routes through Bot Framework
+    Surface->>BFS: Activity message with text
+    
+    Note over BFS,CEA: STEP 3 — BFS authenticates and forwards to bot endpoint
+    BFS->>CEA: POST /api/messages + Bearer JWT
+    
+    Note over CEA: JWT Validation: verify issuer, audience, signature
+    
+    Note over CEA,Surface: STEP 4 — Acknowledge receipt immediately
+    CEA-->>BFS: Working on your blog post...
+    BFS-->>Surface: Display acknowledgment
+    Surface-->>User: Shows typing indicator
+
+    Note over CEA,A2A: STEP 5 — Forward to orchestrator via A2A protocol
+    CEA->>A2A: POST /a2a/orchestrator JSON-RPC 2.0 message/stream
+    
+    Note over A2A,BW: STEP 6 — Orchestrator runs multi-agent workflow
+    A2A->>BW: Superstep 1: Generate draft
+    BW->>LLM: Blog writer instructions + user topic
+    LLM-->>BW: Draft blog post streamed
+    
+    Note over BW,RV: STEP 7 — Sequential edge: draft flows to reviewer
+    BW->>RV: Draft output becomes reviewer input
+    RV->>LLM: Editor instructions + draft
+    LLM-->>RV: Polished blog post streamed
+    
+    Note over A2A,CEA: STEP 8 — Stream response back via SSE
+    RV-->>A2A: Final polished post
+    A2A-->>CEA: SSE data stream with JSON-RPC results
+
+    Note over CEA: Typing indicators sent every 8s during processing
+
+    Note over CEA,User: STEP 9 — Deliver final response to user
+    CEA-->>BFS: Activity message with blog post
+    BFS-->>Surface: Route response to channel
+    Surface-->>User: Displays polished blog post

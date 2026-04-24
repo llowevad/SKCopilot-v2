@@ -1,0 +1,46 @@
+# Environment secrets
+.env
+
+# AI assistant / tooling state (local only)
+.squad/
+.github/
+.copilot/
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+
+# User secrets / local settings
+**/appsettings.Development.json
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+
+# NuGet
+*.nupkg
+packages/
+
+# Temp files and logs
+*.zip
+temp-logs/
+copilot-logs/
+webapp-logs/
+exportcopy/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Squad: ignore runtime state (logs, inbox, sessions)
+.squad/orchestration-log/
+.squad/log/
+.squad/decisions/inbox/
+.squad/sessions/
+# Squad: SubSquad activation file (local to this machine)
+.squad-workstream
